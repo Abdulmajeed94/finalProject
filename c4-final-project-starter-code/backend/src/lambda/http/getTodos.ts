@@ -3,18 +3,34 @@ import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 
 import * as AWS from 'aws-sdk'
+import {parseUserId} from '../../auth/utils'
+
 
 const docClient = new AWS.DynamoDB.DocumentClient()
 
-const groupTable = process.env.GROUPS_TABLE 
+const groupTable = process.env.GROUPS_TABLE
+const userIdIndex = process.env.USER_ID_INDEX
+
 
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
   console.log('processing event' , event) 
 
-  const result = await docClient.scan({
-    TableName: groupTable
+
+const authorazation = event.headers.Authorazation
+
+const userId = parseUserId(authorazation.split(" ")[1]);
+
+
+
+  const result = await docClient.query({
+    TableName: groupTable,
+    IndexName: userIdIndex,
+    KeyConditionExpression: "userId =userId",
+    ExpressionAttributeValues: {
+      "userId": userId
+    }
     
   }).promise()
 
@@ -23,7 +39,8 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   return{
     statusCode:200,
     headers:{
-      'Access-Control-Allow-Origin': '*'
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credential': true
     },
 
     body: JSON.stringify({

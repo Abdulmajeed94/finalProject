@@ -24,13 +24,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   
   
   
-  
-  
-  const authorazation = event.headers.authorazation
-  const split = authorazation.split(' ')
-  const jwtPayload = split[1]
-
-
    const newItem = {
 
     id:itemId,
